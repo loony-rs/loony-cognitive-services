@@ -1,0 +1,5 @@
+/audio
+/target
+.env*
+.github
+.git
