@@ -19,14 +19,42 @@ async fn ws_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>) ->
 
 // Function that handles the actual websocket connection
 async fn handle_socket(mut socket: WebSocket) {
+    let model: String = std::env::var("MODEL").unwrap_or_else(|_| "phone_call".to_string());
+    let language: String = std::env::var("LANGUAGE").unwrap_or_else(|_| "en-US".to_string());
+
+    let sample_rate_hertz: i32 = std::env::var("SAMPLE_RATE_HERTZ")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(8000);
+
+    let audio_channel_count: i32 = std::env::var("AUDIO_CHANNEL_COUNT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1);
+    println!(
+        "{} {} {} {}",
+        model, language, sample_rate_hertz, audio_channel_count
+    );
+
+    let app_config = (model, language, sample_rate_hertz, audio_channel_count);
+
     println!("WebSocket connection established");
-    let stt = GoogleSTT::new().await.unwrap();
+
+    let stt = GoogleSTT::new(app_config).await.unwrap();
     let audio_sink = stt.audio_sink.clone().unwrap();
     while let Some(Ok(msg)) = socket.next().await {
         match msg {
             AxumMessage::Text(text) => {
                 if text == "START_VOICE_RECORDING" {
                     log::debug!("START_VOICE_RECORDING");
+
+                    let req = StreamingRecognizeRequest {
+                        recognizer: stt.recognizer_id.clone(),
+                        streaming_request: Some(StreamingRequest::StreamingConfig(
+                            stt.streaming_recognition_config.clone(),
+                        )),
+                    };
+                    audio_sink.send(req).await.unwrap();
                 }
                 if text == "STOP_VOICE_RECORDING" {
                     log::debug!("STOP_VOICE_RECORDING");

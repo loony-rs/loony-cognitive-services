@@ -1,8 +1,9 @@
 use futures::pin_mut;
 use google_cognitive_apis::api::grpc::google::cloud::speechtotext::v2::{
     ExplicitDecodingConfig, RecognitionConfig, StreamingRecognitionConfig,
-    StreamingRecognizeRequest, explicit_decoding_config::AudioEncoding,
-    recognition_config::DecodingConfig, streaming_recognize_request::StreamingRequest,
+    StreamingRecognitionFeatures, StreamingRecognizeRequest,
+    explicit_decoding_config::AudioEncoding, recognition_config::DecodingConfig,
+    streaming_recognize_request::StreamingRequest,
 };
 use google_cognitive_apis::speechtotext::recognizer_v2::Recognizer;
 use log::*;
@@ -19,8 +20,9 @@ pub struct GoogleSTT {
 }
 
 impl GoogleSTT {
-    pub async fn new() -> Result<Self, ()> {
-        let streaming_recognition_config = GoogleSTT::get_streaming_recognition_config().await?;
+    pub async fn new(config: (String, String, i32, i32)) -> Result<Self, ()> {
+        let streaming_recognition_config =
+            GoogleSTT::get_streaming_recognition_config(config).await?;
 
         GoogleSTT::new_with_streaming_recognition_config(streaming_recognition_config).await
     }
@@ -56,36 +58,36 @@ impl GoogleSTT {
         })
     }
 
-    async fn get_streaming_recognition_config() -> Result<StreamingRecognitionConfig, ()> {
-        let model: String = std::env::var("MODEL").unwrap_or_else(|_| "phone_call".to_string());
-        let lang_code_: String = std::env::var("LANG_CODE").unwrap_or_else(|_| "en-US".to_string());
-
-        let srh: i32 = std::env::var("SRH")
-            .ok()
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(8000);
-
-        let acc: i32 = std::env::var("ACC")
-            .ok()
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(1);
-        println!("{} {} {} {}", model, lang_code_, srh, acc);
-        let recognition_config = RecognitionConfig {
-            model,
-            language_codes: vec![lang_code_],
-            decoding_config: Some(DecodingConfig::ExplicitDecodingConfig(
-                ExplicitDecodingConfig {
-                    encoding: AudioEncoding::Linear16 as i32,
-                    sample_rate_hertz: srh,
-                    audio_channel_count: acc,
-                },
-            )),
-            ..Default::default()
+    async fn get_streaming_recognition_config(
+        config: (String, String, i32, i32),
+    ) -> Result<StreamingRecognitionConfig, ()> {
+        let config = StreamingRecognitionConfig {
+            config: Some(RecognitionConfig {
+                model: config.0,
+                language_codes: vec![config.1],
+                features: None,
+                adaptation: None,
+                transcript_normalization: None,
+                translation_config: None,
+                denoiser_config: None,
+                decoding_config: Some(DecodingConfig::ExplicitDecodingConfig(
+                    ExplicitDecodingConfig {
+                        encoding: AudioEncoding::Linear16 as i32,
+                        sample_rate_hertz: config.2,
+                        audio_channel_count: config.3,
+                    },
+                )),
+                ..Default::default()
+            }),
+            config_mask: None,
+            streaming_features: Some(StreamingRecognitionFeatures {
+                enable_voice_activity_events: false,
+                interim_results: true,
+                voice_activity_timeout: None,
+                endpointing_sensitivity: 0,
+            }),
         };
-        Ok(StreamingRecognitionConfig {
-            config: Some(recognition_config),
-            ..Default::default()
-        })
+        Ok(config)
     }
 
     async fn stt_streaming_loop(mut recognizer: Recognizer) {

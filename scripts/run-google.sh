@@ -11,8 +11,8 @@ fi
 hash -r
 
 
-MODEL="chirp_3" \
-LANG_CODE="en-US" \
-SRH=8000 \
-ACC=1 \
+MODEL="latest_long" \
+LANGUAGE="en-US" \
+SAMPLE_RATE_HERTZ=16000 \
+AUDIO_CHANNEL_COUNT=1 \
 ./target/release/google
