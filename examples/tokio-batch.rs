@@ -1,6 +1,6 @@
-use voice_recognition::batch::{
-    models::{self, JobConfig, TranscriptionConfig},
+use loony_cognitive_services::batch::{
     BatchClient,
+    models::{self, JobConfig, TranscriptionConfig},
 };
 use std::path::PathBuf;
 use tokio;

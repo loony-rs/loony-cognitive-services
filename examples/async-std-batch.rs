@@ -1,10 +1,10 @@
-use voice_recognition::batch::{
-    models::{self, JobConfig, TranscriptionConfig},
+use loony_cognitive_services::batch::{
     BatchClient,
+    models::{self, JobConfig, TranscriptionConfig},
 };
 use std::path::PathBuf;
 
-#[async_std::main]
+#[tokio::main]
 async fn main() {
     // instantiate the client
     let api_key: String = std::env::var("API_KEY").unwrap();

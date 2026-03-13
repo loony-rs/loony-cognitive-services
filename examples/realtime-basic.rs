@@ -1,4 +1,4 @@
-use voice_recognition::realtime::*;
+use loony_cognitive_services::realtime::*;
 use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
@@ -27,16 +27,19 @@ impl MockStore {
 
 #[tokio::main]
 async fn main() {
-    let api_key: String = "evK20Lpk7TTRtpNAv0Cbh4pCBzvr32Y6".to_string();
+    let api_key: String = "ZtJSMQrtJ1Y8j1jh3mp7AmRPJK2eEnuE".to_string();
     let (mut rt_session, mut receive_channel) = RealtimeSession::new(api_key, None).unwrap();
 
-    let test_file_path = PathBuf::new()
-        .join(".")
-        .join("tests")
-        .join("data")
-        .join("example.wav");
+    let test_file_path: PathBuf = PathBuf::new()
+        .join("home")
+        .join("sankar")
+        .join("Music")
+        .join("sounds")
+        .join("speechmatics.wav");
 
-    let file = File::open(test_file_path).await.unwrap();
+    let file = File::open("/home/sankar/Music/sounds/speechmatics.wav")
+        .await
+        .unwrap();
 
     let mut config: SessionConfig = Default::default();
     let audio_config = models::AudioFormat::new(models::audio_format::Type::File);

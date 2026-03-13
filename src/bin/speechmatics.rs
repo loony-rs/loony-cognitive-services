@@ -32,6 +32,9 @@ async fn main() {
     let port = std::env::var("SPEECHMATICS_PORT").unwrap_or("2111".to_string());
     let port = port.parse::<i32>().unwrap();
     let app_state = AppState { api_key };
+    connect_speechmatics(app_state.api_key.clone())
+        .await
+        .unwrap();
 
     let app = Router::new()
         .route("/", get(websocket_handler))
