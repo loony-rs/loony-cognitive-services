@@ -34,6 +34,8 @@ prost = "0.14.3"
 prost-types = "0.14.3"
 tonic = { version = "0.14.5", features = ['tls-ring', 'transport']}
 tokio-stream = { version = "0.1.18", features = ["full"] }
+google-cloud-speech-v2 = "1.7.0"
+futures-util = "0.3.32"
 
 [features]
 default = ["realtime", "batch"]
